@@ -3,9 +3,9 @@
   "version": "1.0.0",
   "description": "A JavaScript implementation of Javidx9's OneLoneCoder game console/pixel game engines.",
   "scripts": {
-    "compile": "tsc ./src/index.ts --outdir ./dist --module es6 --target es6",
+    "compile": "tsc --project tsconfig.json",
     "compile:watch": "npm run compile -- --watch",
-    "lint": "eslint .",
+    "lint": "eslint . --config .eslintrc.json",
     "lint:fix": "npm run lint -- --fix"
   },
   "repository": {
@@ -27,25 +27,5 @@
     "eslint-plugin-prettier": "^3.1.4",
     "prettier": "^2.0.5",
     "typescript": "^3.9.6"
-  },
-  "eslintConfig": {
-    "root": true,
-    "env": {
-      "browser": true
-    },
-    "parser": "@typescript-eslint/parser",
-    "plugins": [
-      "@typescript-eslint"
-    ],
-    "extends": [
-      "eslint:recommended",
-      "plugin:@typescript-eslint/recommended",
-      "prettier/@typescript-eslint",
-      "plugin:prettier/recommended"
-    ],
-    "ignorePatterns": [
-      "node_modules",
-      "dist"
-    ]
   }
 }
