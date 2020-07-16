@@ -1,0 +1,51 @@
+{
+  "name": "olc-game-engine",
+  "version": "1.0.0",
+  "description": "A JavaScript implementation of Javidx9's OneLoneCoder game console/pixel game engines.",
+  "scripts": {
+    "compile": "tsc ./src/index.ts --outdir ./dist --module es6 --target es6",
+    "compile:watch": "npm run compile -- --watch",
+    "lint": "eslint .",
+    "lint:fix": "npm run lint -- --fix"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/SamuelDavis/olc-game-engine.git"
+  },
+  "author": "Samuel Davis",
+  "license": "UNLICENSED",
+  "bugs": {
+    "url": "https://github.com/SamuelDavis/olc-game-engine/issues"
+  },
+  "homepage": "https://github.com/SamuelDavis/olc-game-engine#readme",
+  "private": true,
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^3.6.1",
+    "@typescript-eslint/parser": "^3.6.1",
+    "eslint": "^7.4.0",
+    "eslint-config-prettier": "^6.11.0",
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.0.5",
+    "typescript": "^3.9.6"
+  },
+  "eslintConfig": {
+    "root": true,
+    "env": {
+      "browser": true
+    },
+    "parser": "@typescript-eslint/parser",
+    "plugins": [
+      "@typescript-eslint"
+    ],
+    "extends": [
+      "eslint:recommended",
+      "plugin:@typescript-eslint/recommended",
+      "prettier/@typescript-eslint",
+      "plugin:prettier/recommended"
+    ],
+    "ignorePatterns": [
+      "node_modules",
+      "dist"
+    ]
+  }
+}
