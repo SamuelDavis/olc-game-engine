@@ -1,3 +1,5 @@
+import App from "./apps/GameOfLifeDOMExample.js";
+
 export default function () {
-  console.log("Hello, world!");
+  new App().start();
 }
