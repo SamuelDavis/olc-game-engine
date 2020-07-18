@@ -1,4 +1,4 @@
-import BrowserGameEngine, { COLOR } from "../olc.js";
+import { BrowserGameEngine, COLOR } from "../olc.js";
 
 const CELLS_TO_A_SIDE = 15;
 

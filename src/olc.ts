@@ -4,7 +4,7 @@ export enum COLOR {
   BLACK = "black",
 }
 
-export default abstract class BrowserGameEngine {
+export abstract class BrowserGameEngine {
   private readonly maxFPS: number;
   private readonly maxUPS: number;
   private readonly minRenderDelay: number;

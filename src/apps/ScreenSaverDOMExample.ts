@@ -1,4 +1,4 @@
-import BrowserGameEngine, { COLOR } from "../olc.js";
+import { BrowserGameEngine, COLOR } from "../olc.js";
 
 class Subject {
   public readonly el: HTMLDivElement;
