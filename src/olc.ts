@@ -11,10 +11,6 @@ export class Color {
     this.a = a;
   }
 
-  toString(): string {
-    return `rgba(${this.r},${this.g},${this.b},${this.a})`;
-  }
-
   static get WHITE(): Color {
     return new Color(255, 255, 255);
   }
@@ -34,95 +30,144 @@ export class Color {
   static get BLUE(): Color {
     return new Color(0, 0, 255, 255);
   }
+
+  public withAlpha(value: number): Color {
+    return new Color(this.r, this.g, this.b, value);
+  }
+
+  toString(): string {
+    return `rgba(${this.r},${this.g},${this.b},${this.a})`;
+  }
 }
 
 export abstract class BrowserGameEngine {
-  private readonly maxFPS: number;
-  private readonly maxUPS: number;
-  private readonly minRenderDelay: number;
-  private readonly minUpdateDelay: number;
+  public static APP_NAME = "Browser App";
+  public readonly container: HTMLDivElement = document.createElement("div");
   private readonly maxUpdates = 240;
-  private lastFPSTimestamp: DOMHighResTimeStamp = 0;
+  private minRenderDelay: number;
+  private minUpdateDelay: number;
+  private nextAnimationFrame: number;
+  private lastFPSAverageTimestamp: DOMHighResTimeStamp = 0;
   private elapsedTime: DOMHighResTimeStamp = 0;
   private weightedFPSAverage = 0;
-  private framesThisSecond = 0;
-  private nextAnimationFrame: number;
+  private framesThisIteration = 0;
+  private fpsAverageWeight = 0.25;
   private started = false;
 
   constructor(maxUPS = 60, maxFPS = 60) {
     this.maxUPS = maxUPS;
     this.maxFPS = maxFPS;
-    this.minUpdateDelay = 1000 / this.maxUPS;
-    this.minRenderDelay = 1000 / this.maxFPS;
   }
 
-  protected get fps() {
+  private _maxFPS: number;
+
+  protected set maxFPS(value: number) {
+    this._maxFPS = value;
+    this.minRenderDelay = 1000 / this._maxFPS;
+  }
+
+  private _maxUPS: number;
+
+  protected set maxUPS(value: number) {
+    this._maxUPS = value;
+    this.minUpdateDelay = 1000 / this._maxUPS;
+  }
+
+  protected get fps(): number {
     return this.weightedFPSAverage;
   }
 
   public start(): void {
-    if (this.started) return;
-
     // start main loop
-    if (this.onUserCreate())
+    if (!this.started && this.create())
       this.nextAnimationFrame = requestAnimationFrame(
-        this.mainLoop.bind(this, performance.now())
+        (timestamp: DOMHighResTimeStamp) => {
+          if (this.initialRender()) this.renderFrom(timestamp);
+        }
       );
 
     this.started = true;
   }
 
-  protected abstract onUserCreate(): boolean;
-
-  protected abstract onUserRender(): boolean;
-
-  protected abstract onUserUpdate(elapsedTime: DOMHighResTimeStamp): boolean;
-
-  protected panic(): void {
-    this.elapsedTime = 0;
+  public stop(): void {
+    if (this.started && this.destroy()) {
+      cancelAnimationFrame(this.nextAnimationFrame);
+      this.elapsedTime = 0;
+      this.weightedFPSAverage = 0;
+      this.framesThisIteration = 0;
+      this.started = false;
+    }
   }
 
-  private mainLoop(
-    lastTimestamp: DOMHighResTimeStamp,
-    timestamp: DOMHighResTimeStamp
-  ): void {
-    this.elapsedTime += timestamp - lastTimestamp;
+  protected abstract create(): boolean;
 
-    // track average fps
-    if (timestamp > this.lastFPSTimestamp + 1000) {
-      this.weightedFPSAverage =
-        0.25 * this.framesThisSecond + 0.75 * this.weightedFPSAverage;
-      this.lastFPSTimestamp = timestamp;
-      this.framesThisSecond = 0;
-    }
-    this.framesThisSecond++;
+  protected abstract render(): boolean;
+
+  protected abstract update(elapsedTime: DOMHighResTimeStamp): boolean;
+
+  protected panic(): boolean {
+    this.elapsedTime = 0;
+
+    return true;
+  }
+
+  protected initialRender(): boolean {
+    return true;
+  }
+
+  protected destroy(): boolean {
+    return true;
+  }
+
+  private renderFrom(timestamp: DOMHighResTimeStamp): void {
+    this.nextAnimationFrame = requestAnimationFrame(
+      this.renderLoop.bind(this, timestamp)
+    );
+  }
+
+  private renderLoop(
+    lastTimestamp: DOMHighResTimeStamp,
+    currentTimestamp: DOMHighResTimeStamp
+  ): void {
+    this.elapsedTime += currentTimestamp - lastTimestamp;
 
     // skip render if rendering too fast
-    if (this.elapsedTime < this.minRenderDelay) {
-      this.nextAnimationFrame = requestAnimationFrame(
-        this.mainLoop.bind(this, lastTimestamp)
-      );
-      return;
-    }
+    if (this.elapsedTime < this.minRenderDelay)
+      return this.renderFrom(lastTimestamp);
 
-    // update at a constant speed
+    // track average fps
+    if (currentTimestamp > this.lastFPSAverageTimestamp + 1000)
+      this.updateFPSWeightedAverage(currentTimestamp);
+
+    // update with a constant delta
     // until all the time between frames is used up
     let numUpdates = 0;
     while (
       this.elapsedTime > this.minUpdateDelay &&
-      this.onUserUpdate(this.minUpdateDelay)
+      this.update(this.minUpdateDelay)
     ) {
       this.elapsedTime -= this.minUpdateDelay;
-      if (++numUpdates >= this.maxUpdates) {
-        this.panic();
-        break;
-      }
+      if (++numUpdates >= this.maxUpdates && this.panic()) break;
     }
 
-    // continue main loop
-    if (this.onUserRender())
-      this.nextAnimationFrame = requestAnimationFrame(
-        this.mainLoop.bind(this, timestamp)
-      );
+    // render & continue loop
+    this.framesThisIteration++;
+    if (this.render()) this.renderFrom(currentTimestamp);
+  }
+
+  private updateFPSWeightedAverage(currentTimestamp: DOMHighResTimeStamp) {
+    const msSinceLastIteration =
+      currentTimestamp - this.lastFPSAverageTimestamp;
+    const weightedFPSThisIteration =
+      this.fpsAverageWeight * this.framesThisIteration;
+    const reweightedFPSLastIteration =
+      (1 - this.fpsAverageWeight) * this.weightedFPSAverage;
+
+    this.weightedFPSAverage =
+      (weightedFPSThisIteration * 1000) / msSinceLastIteration +
+      reweightedFPSLastIteration;
+
+    this.framesThisIteration = 0;
+    this.lastFPSAverageTimestamp = currentTimestamp;
   }
 }

@@ -24,9 +24,31 @@ class Subject {
 }
 
 export default class ScreenSaverDOMExample extends BrowserGameEngine {
+  public static APP_NAME = "Screen Saver";
+
   private subject: Subject;
 
-  protected onUserCreate(): boolean {
+  private get topBound(): number {
+    return this.container.offsetTop;
+  }
+
+  private get rightBound(): number {
+    return (
+      this.container.offsetLeft + this.container.offsetWidth - this.subject.size
+    );
+  }
+
+  private get bottomBound(): number {
+    return (
+      this.container.offsetTop + this.container.offsetHeight - this.subject.size
+    );
+  }
+
+  private get leftBound(): number {
+    return this.container.offsetLeft;
+  }
+
+  protected create(): boolean {
     const size = 50;
     this.subject = new Subject(
       size,
@@ -37,32 +59,37 @@ export default class ScreenSaverDOMExample extends BrowserGameEngine {
     return true;
   }
 
-  protected onUserRender(): boolean {
-    if (this.subject.el.parentElement !== document.body) {
-      this.subject.el.style.textAlign = "center";
-      document.body.style.width = "100vw";
-      document.body.style.height = "100vh";
-      document.body.appendChild(this.subject.el);
-    }
+  protected initialRender(): boolean {
+    this.subject.el.style.textAlign = "center";
+    this.container.appendChild(this.subject.el);
+
+    return true;
+  }
+
+  protected render(): boolean {
+    document.title = `${
+      ScreenSaverDOMExample.APP_NAME
+    } - FPS: ${this.fps.toFixed(2)}`;
+
     this.subject.el.style.left = `${this.subject.x}px`;
     this.subject.el.style.top = `${this.subject.y}px`;
 
     return true;
   }
 
-  protected onUserUpdate(elapsedTime: DOMHighResTimeStamp): boolean {
+  protected update(elapsedTime: DOMHighResTimeStamp): boolean {
     this.subject.x += this.subject.dx * elapsedTime;
     this.subject.y += this.subject.dy * elapsedTime;
 
-    if (this.subject.x < 0) this.subject.dx = Math.abs(this.subject.dx);
-    if (this.subject.x > window.innerWidth - this.subject.size)
+    if (this.subject.x < this.leftBound)
+      this.subject.dx = Math.abs(this.subject.dx);
+    if (this.subject.x > this.rightBound)
       this.subject.dx = -Math.abs(this.subject.dx);
 
-    if (this.subject.y < 0) this.subject.dy = Math.abs(this.subject.dy);
-    if (this.subject.y > window.innerHeight - this.subject.size)
+    if (this.subject.y < this.topBound)
+      this.subject.dy = Math.abs(this.subject.dy);
+    if (this.subject.y > this.bottomBound)
       this.subject.dy = -Math.abs(this.subject.dy);
-
-    this.subject.el.innerText = `${this.fps.toFixed(2)} FPS`;
 
     return true;
   }

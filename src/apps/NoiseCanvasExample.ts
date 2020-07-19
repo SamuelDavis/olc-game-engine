@@ -1,8 +1,11 @@
 import { BrowserGameEngine, Color } from "../olc.js";
 
 export default class NoiseCanvasExample extends BrowserGameEngine {
+  public static APP_NAME = "Noise";
+
   private readonly screenWidth: number;
   private readonly screenHeight: number;
+  private canvas: HTMLCanvasElement;
   private ctx: ImageBitmapRenderingContext;
   private offscreenCtx: OffscreenCanvasRenderingContext2D;
   private colors: string[];
@@ -17,18 +20,27 @@ export default class NoiseCanvasExample extends BrowserGameEngine {
     super();
     this.screenWidth = screenWidth;
     this.screenHeight = screenHeight;
-    this.ctx = document.createElement("canvas").getContext("bitmaprenderer");
-    this.ctx.canvas.width = this.screenWidth * pixelWidth;
-    this.ctx.canvas.height = this.screenHeight * pixelHeight;
+    this.canvas = document.createElement("canvas");
+    this.ctx = this.canvas.getContext("bitmaprenderer");
+    this.canvas.width = this.screenWidth * pixelWidth;
+    this.canvas.height = this.screenHeight * pixelHeight;
     this.offscreenCtx = new OffscreenCanvas(
-      this.ctx.canvas.width,
-      this.ctx.canvas.height
+      this.canvas.width,
+      this.canvas.height
     ).getContext("2d");
     this.offscreenCtx.scale(pixelWidth, pixelHeight);
   }
 
-  protected onUserCreate(): boolean {
-    document.body.appendChild(<HTMLCanvasElement>this.ctx.canvas);
+  protected initialRender(): boolean {
+    this.container.appendChild(this.canvas);
+    this.container.style.display = "flex";
+    this.container.style.justifyContent = "center";
+    this.container.style.alignItems = "center";
+
+    return true;
+  }
+
+  protected create(): boolean {
     this.colors = [
       Color.RED.toString(),
       Color.GREEN.toString(),
@@ -42,7 +54,11 @@ export default class NoiseCanvasExample extends BrowserGameEngine {
     return true;
   }
 
-  protected onUserRender(): boolean {
+  protected render(): boolean {
+    document.title = `${NoiseCanvasExample.APP_NAME} - FPS: ${this.fps.toFixed(
+      2
+    )}`;
+
     this.offscreenCtx.clearRect(0, 0, this.screenWidth, this.screenHeight);
     for (const color in this.colorPools) {
       this.offscreenCtx.fillStyle = color;
@@ -51,8 +67,6 @@ export default class NoiseCanvasExample extends BrowserGameEngine {
       );
     }
 
-    document.title = `FPS: ${this.fps.toFixed(2)}`;
-
     this.ctx.transferFromImageBitmap(
       this.offscreenCtx.canvas.transferToImageBitmap()
     );
@@ -60,8 +74,8 @@ export default class NoiseCanvasExample extends BrowserGameEngine {
     return true;
   }
 
-  protected onUserUpdate(elapsedTime: DOMHighResTimeStamp): boolean {
-    for (const color in this.colorPools) this.colorPools[color] = [];
+  protected update(): boolean {
+    for (const color in this.colorPools) this.colorPools[color].length = 0;
 
     for (let x = 0; x < this.screenWidth; x++) {
       for (let y = 0; y < this.screenHeight; y++) {

@@ -18,16 +18,14 @@ class Cell {
 }
 
 export default class GameOfLifeDOMExample extends BrowserGameEngine {
-  private mounted = false;
+  public static APP_NAME = "Game of Life";
+
   private cells: Cell[];
   private changeSet: boolean[];
   private paused = false;
 
-  constructor() {
-    super(2);
-  }
-
-  protected onUserCreate(): boolean {
+  protected create(): boolean {
+    this.maxUPS = 2;
     this.cells = new Array(Math.pow(CELLS_TO_A_SIDE, 2))
       .fill(undefined)
       .map(() => {
@@ -39,26 +37,35 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
       });
     this.changeSet = this.cells.map((cell) => cell.alive);
 
-    addEventListener("dblclick", () => (this.paused = !this.paused));
+    this.container.addEventListener(
+      "dblclick",
+      () => (this.paused = !this.paused)
+    );
 
     return true;
   }
 
-  protected onUserRender(): boolean {
-    if (!this.mounted) {
-      this.cells.forEach((cell) => document.body.appendChild(cell.el));
-      this.mounted = true;
-    }
+  protected initialRender(): boolean {
+    this.cells.forEach((cell) => this.container.appendChild(cell.el));
+
+    return true;
+  }
+
+  protected render(): boolean {
+    document.title = `${
+      GameOfLifeDOMExample.APP_NAME
+    } - FPS: ${this.fps.toFixed(2)}`;
 
     this.cells.forEach((cell) => {
-      cell.el.style.backgroundColor = `${cell.alive ? Color.GREEN : Color.RED}`;
-      cell.el.style.opacity = `${this.paused ? 0.5 : 1}`;
+      cell.el.style.backgroundColor = (cell.alive ? Color.GREEN : Color.RED)
+        .withAlpha(this.paused ? 0.5 : 1)
+        .toString();
     });
 
     return true;
   }
 
-  protected onUserUpdate(elapsedTime: DOMHighResTimeStamp): boolean {
+  protected update(): boolean {
     if (this.paused) return true;
 
     this.cells.forEach((cell, i) => {
@@ -71,11 +78,6 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
     this.cells.forEach((cell, i) => (cell.alive = this.changeSet[i]));
 
     return true;
-  }
-
-  protected panic() {
-    console.error("panic");
-    super.panic();
   }
 
   private read = (i: number): boolean => this.cells[i]?.alive;
