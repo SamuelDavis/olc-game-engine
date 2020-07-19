@@ -32,11 +32,9 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
       .fill(undefined)
       .map(() => {
         const cell = new Cell(Math.random() < 0.5);
-        const toggleLife = () => {
+        cell.el.addEventListener("mousedown", () => {
           if (this.paused) cell.alive = !cell.alive;
-        };
-        cell.el.addEventListener("mouseup", toggleLife);
-        cell.el.addEventListener("touchend", toggleLife);
+        });
         return cell;
       });
     this.changeSet = this.cells.map((cell) => cell.alive);

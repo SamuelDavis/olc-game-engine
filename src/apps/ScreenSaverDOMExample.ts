@@ -1,4 +1,4 @@
-import { BrowserGameEngine, COLOR } from "../olc.js";
+import { BrowserGameEngine, Color } from "../olc.js";
 
 class Subject {
   public readonly el: HTMLDivElement;
@@ -12,7 +12,7 @@ class Subject {
     this.el = document.createElement("div");
     this.size = size;
     this.el.style.position = "absolute";
-    this.el.style.backgroundColor = COLOR.RED;
+    this.el.style.backgroundColor = Color.RED.toString();
     this.el.style.height = `${this.size}px`;
     this.el.style.width = `${this.size}px`;
 
