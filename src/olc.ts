@@ -1,7 +1,39 @@
-export enum COLOR {
-  RED = "red",
-  GREEN = "green",
-  BLACK = "black",
+export class Color {
+  private readonly r: number;
+  private readonly g: number;
+  private readonly b: number;
+  private readonly a: number;
+
+  constructor(r = 0, g = 0, b = 0, a = 255) {
+    this.r = r;
+    this.g = g;
+    this.b = b;
+    this.a = a;
+  }
+
+  toString(): string {
+    return `rgba(${this.r},${this.g},${this.b},${this.a})`;
+  }
+
+  static get WHITE(): Color {
+    return new Color(255, 255, 255);
+  }
+
+  static get BLACK(): Color {
+    return new Color(0, 0, 0, 255);
+  }
+
+  static get RED(): Color {
+    return new Color(255, 0, 0, 255);
+  }
+
+  static get GREEN(): Color {
+    return new Color(0, 255, 0, 255);
+  }
+
+  static get BLUE(): Color {
+    return new Color(0, 0, 255, 255);
+  }
 }
 
 export abstract class BrowserGameEngine {

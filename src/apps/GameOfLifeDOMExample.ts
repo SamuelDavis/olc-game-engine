@@ -1,4 +1,4 @@
-import { BrowserGameEngine, COLOR } from "../olc.js";
+import { BrowserGameEngine, Color } from "../olc.js";
 
 const CELLS_TO_A_SIDE = 15;
 
@@ -11,7 +11,7 @@ class Cell {
     this.el = document.createElement("div");
     this.el.style.display = "inline-block";
     this.el.style.verticalAlign = "top";
-    this.el.style.border = `1px solid ${COLOR.BLACK}`;
+    this.el.style.border = `1px solid ${Color.BLACK}`;
     this.el.style.width = `calc(${100 / CELLS_TO_A_SIDE}vw - 2px)`;
     this.el.style.height = `calc(${100 / CELLS_TO_A_SIDE}vh - 2px)`;
   }
@@ -22,23 +22,6 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
   private cells: Cell[];
   private changeSet: boolean[];
   private paused = false;
-
-  private read = (i: number): boolean => this.cells[i]?.alive;
-  private write = (i: number, alive: boolean) =>
-    this.changeSet[i] === undefined ? false : (this.changeSet[i] = alive);
-  private countNeighbors = (i: number): number =>
-    [
-      i - CELLS_TO_A_SIDE - 1,
-      i - CELLS_TO_A_SIDE,
-      i - CELLS_TO_A_SIDE + 1,
-      i - 1,
-      i + 1,
-      i + CELLS_TO_A_SIDE - 1,
-      i + CELLS_TO_A_SIDE,
-      i + CELLS_TO_A_SIDE + 1,
-    ]
-      .map(this.read)
-      .filter(Boolean).length;
 
   constructor() {
     super(2);
@@ -70,7 +53,7 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
     }
 
     this.cells.forEach((cell) => {
-      cell.el.style.backgroundColor = cell.alive ? COLOR.GREEN : COLOR.RED;
+      cell.el.style.backgroundColor = `${cell.alive ? Color.GREEN : Color.RED}`;
       cell.el.style.opacity = `${this.paused ? 0.5 : 1}`;
     });
 
@@ -96,4 +79,23 @@ export default class GameOfLifeDOMExample extends BrowserGameEngine {
     console.error("panic");
     super.panic();
   }
+
+  private read = (i: number): boolean => this.cells[i]?.alive;
+
+  private write = (i: number, alive: boolean) =>
+    this.changeSet[i] === undefined ? false : (this.changeSet[i] = alive);
+
+  private countNeighbors = (i: number): number =>
+    [
+      i - CELLS_TO_A_SIDE - 1,
+      i - CELLS_TO_A_SIDE,
+      i - CELLS_TO_A_SIDE + 1,
+      i - 1,
+      i + 1,
+      i + CELLS_TO_A_SIDE - 1,
+      i + CELLS_TO_A_SIDE,
+      i + CELLS_TO_A_SIDE + 1,
+    ]
+      .map(this.read)
+      .filter(Boolean).length;
 }
